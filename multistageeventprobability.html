@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-Stage Probability Challenge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 30px;
+        }
+
+        .game-box {
+            background: white;
+            width: 700px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px grey;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        input {
+            padding: 8px;
+            width: 150px;
+            font-size: 16px;
+        }
+
+        #feedback {
+            font-size: 20px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        #score {
+            color: green;
+            font-size: 22px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="game-box">
+    <h1>🎲 Multi-Stage Probability Challenge</h1>
+
+    <h2 id="question">Press Start</h2>
+
+    <p>Enter probability as a fraction (e.g. 1/6)</p>
+
+    <input type="text" id="answer">
+
+    <br>
+
+    <button onclick="checkAnswer()">Submit</button>
+    <button onclick="newQuestion()">Next Question</button>
+
+    <p id="feedback"></p>
+
+    <h3 id="score">Score: 0</h3>
+</div>
+
+<script>
+
+let score = 0;
+let correctAnswer = "";
+
+function simplify(numerator, denominator) {
+
+    function gcd(a,b){
+        return b === 0 ? a : gcd(b,a%b);
+    }
+
+    let common = gcd(numerator, denominator);
+
+    return (numerator/common) + "/" + (denominator/common);
+}
+
+function newQuestion(){
+
+    let type = Math.floor(Math.random()*3);
+
+    if(type === 0){
+
+        // Coin then coin
+
+        document.getElementById("question").innerHTML =
+        "A coin is tossed twice. What is the probability of getting TWO HEADS?";
+
+        correctAnswer = "1/4";
+    }
+
+    else if(type === 1){
+
+        // Die then die
+
+        document.getElementById("question").innerHTML =
+        "A die is rolled twice. What is the probability of rolling a 6 and then a 6?";
+
+        correctAnswer = "1/36";
+    }
+
+    else{
+
+        // Coin then die
+
+        document.getElementById("question").innerHTML =
+        "A coin is tossed and a die is rolled. What is the probability of getting a HEAD and a 5?";
+
+        correctAnswer = "1/12";
+    }
+
+    document.getElementById("feedback").innerHTML = "";
+    document.getElementById("answer").value = "";
+}
+
+function checkAnswer(){
+
+    let studentAnswer =
+        document.getElementById("answer").value.replace(/\s/g,'');
+
+    if(studentAnswer === correctAnswer){
+
+        score++;
+
+        document.getElementById("feedback").innerHTML =
+        "✅ Correct!";
+
+    }
+    else{
+
+        document.getElementById("feedback").innerHTML =
+        "❌ Incorrect. Correct answer: " + correctAnswer;
+    }
+
+    document.getElementById("score").innerHTML =
+    "Score: " + score;
+}
+
+newQuestion();
+
+</script>
+
+</body>
+</html>
