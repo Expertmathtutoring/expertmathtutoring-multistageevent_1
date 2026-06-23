@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage 4 Indices Game</title>
+<style>
+body { font-family: "Poppins", sans-serif; text-align: center; background: linear-gradient(135deg, #f0f4ff, #d0e8ff); margin:0; padding:0; }
+h1 { color:#333; margin-top:20px; }
+.tabs { display:flex; justify-content:center; flex-wrap:wrap; margin:20px 0; }
+.tab { padding:10px 20px; margin:5px; background-color:#7bbcff; color:white; cursor:pointer; border-radius:8px; transition: background 0.3s; }
+.tab.active { background-color:#0055aa; }
+.content { display:none; margin-top:20px; }
+.content.active { display:block; }
+button { padding:10px 15px; margin:10px; border-radius:6px; border:none; background-color:#00aaff; color:white; cursor:pointer; font-size:16px; }
+button:hover { background-color:#0077aa; }
+.feedback { margin-top:15px; font-size:20px; font-weight:bold; }
+#fireworkCanvas { position: fixed; top:0; left:0; pointer-events:none; width:100%; height:100%; z-index:9999; }
+</style>
+</head>
+<body>
+<h1>🔥 Stage 4 Indices Game 🔥</h1>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('evaluate')">Evaluate</div>
+  <div class="tab" onclick="switchTab('simplify')">Simplify</div>
+  <div class="tab" onclick="switchTab('laws')">Apply Laws</div>
+  <div class="tab" onclick="switchTab('restart')">Restart</div>
+</div>
+
+<div id="evaluate" class="content active">
+  <h2>Evaluate the expression</h2>
+  <p id="question-evaluate"></p>
+  <div id="buttons-evaluate"></div>
+  <div class="feedback" id="feedback-evaluate"></div>
+</div>
+
+<div id="simplify" class="content">
+  <h2>Simplify the expression</h2>
+  <p id="question-simplify"></p>
+  <div id="buttons-simplify"></div>
+  <div class="feedback" id="feedback-simplify"></div>
+</div>
+
+<div id="laws" class="content">
+  <h2>Apply the law of indices</h2>
+  <p id="question-laws"></p>
+  <div id="buttons-laws"></div>
+  <div class="feedback" id="feedback-laws"></div>
+</div>
+
+<div id="restart" class="content">
+  <h2>Restart Game 🔄</h2>
+  <button onclick="restartGame()">Click to Restart All Questions</button>
+</div>
+
+<canvas id="fireworkCanvas"></canvas>
+
+<script>
+// Tab switching
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(tabName).classList.add('active');
+}
+
+// Question banks with more variety
+const questions = {
+  evaluate: [
+    {q:"2³ × 2² = ?", options:[8,16,32], answer:32},
+    {q:"3² × 3³ = ?", options:[27,9,243], answer:243},
+    {q:"5² × 5⁴ = ?", options:[125,625,3125], answer:625},
+    {q:"2⁵ ÷ 2² = ?", options:[2,4,8], answer:8},
+    {q:"10⁰ × 5² = ?", options:[25,100,0], answer:25},
+    {q:"4³ ÷ 2² = ?", options:[2,8,16], answer:8},
+    {q:"6² × 6⁰ = ?", options:[6,36,1], answer:36}
+  ],
+  simplify: [
+    {q:"x³ × x² = ?", options:["x⁵","x⁶","x⁴"], answer:"x⁵"},
+    {q:"y⁵ ÷ y² = ?", options:["y³","y²","y⁷"], answer:"y³"},
+    {q:"a² × a⁴ = ?", options:["a⁶","a⁸","a²"], answer:"a⁶"},
+    {q:"b³ ÷ b³ = ?", options:["b⁰","b¹","b³"], answer:"b⁰"},
+    {q:"m⁰ × m⁴ = ?", options:["m⁴","m⁰","m¹"], answer:"m⁴"},
+    {q:"x⁵ ÷ x² × x³ = ?", options:["x⁶","x¹⁰","x³"], answer:"x⁶"},
+    {q:"p⁻² × p³ = ?", options:["p","p⁻⁵","p²"], answer:"p"}
+  ],
+  laws: [
+    {q:"(x³)² = ?", options:["x⁶","x⁹","x⁵"], answer:"x⁶"},
+    {q:"x³ × x⁻² = ?", options:["x","x⁻⁵","x⁵"], answer:"x"},
+    {q:"(y² × y³) ÷ y⁴ = ?", options:["y","y²","y³"], answer:"y"},
+    {q:"(a⁴)^(1/2) = ?", options:["a²","a⁴","a⁸"], answer:"a²"},
+    {q:"b⁰ × b⁵ = ?", options:["b⁵","b⁰","1"], answer:"b⁵"},
+    {q:"(2/3)³ = ?", options:["8/27","6/9","8/9"], answer:"8/27"},
+    {q:"(m²n³)² ÷ m³n = ?", options:["m¹n⁵","m⁴n⁵","m¹n⁴"], answer:"m¹n⁵"},
+    {q:"p⁻² × p³ ÷ p = ?", options:["p⁰","p²","p⁻²"], answer:"p⁰"},
+    {q:"(x⁴ ÷ x²)³ = ?", options:["x²","x⁶","x¹²"], answer:"x⁶"},
+    {q:"y³ × y⁻³ = ?", options:["1","y⁶","y⁰"], answer:"1"},
+    {q:"(a²b³)² ÷ (ab)³ = ?", options:["a¹b³","a¹b⁶","a⁴b³"], answer:"a¹b³"},
+    {q:"x⁰ × y⁰ = ?", options:["1","0","xy"], answer:"1"},
+    {q:"(2x³)² ÷ (4x²) = ?", options:["x⁴","x⁶","x²"], answer:"x⁴"},
+    {q:"(3x²)³ ÷ 9x³ = ?", options:["x³","x⁶","x²"], answer:"x³"},
+    {q:"(2a³b)² × a⁻²b² = ?", options:["4a⁴b⁴","4a²b⁴","4a⁶b³"], answer:"4a⁴b⁴"}
+  ]
+};
+
+let currentIndex = {evaluate:0, simplify:0, laws:0};
+
+// Load question
+function loadQuestion(tab) {
+  let q = questions[tab][currentIndex[tab]];
+  document.getElementById(`question-${tab}`).innerHTML = q.q;
+  let buttonsHTML = "";
+  q.options.forEach(opt => buttonsHTML += `<button onclick="checkAnswer('${tab}','${opt}')">${opt}</button>`);
+  document.getElementById(`buttons-${tab}`).innerHTML = buttonsHTML;
+  document.getElementById(`feedback-${tab}`).innerHTML = "";
+}
+
+// Check answer and move to next question
+function checkAnswer(tab, answer) {
+  let q = questions[tab][currentIndex[tab]];
+  let feedback = document.getElementById(`feedback-${tab}`);
+  
+  if(answer == q.answer) {
+    feedback.innerHTML = "🎉 Correct! Well done! 🎉";
+    feedback.style.color = "green";
+    launchFireworks();
+  } else {
+    feedback.innerHTML = "❌ Try again!";
+    feedback.style.color = "red";
+  }
+  
+  setTimeout(() => {
+    currentIndex[tab]++;
+    if(currentIndex[tab]>=questions[tab].length) currentIndex[tab]=0;
+    loadQuestion(tab);
+  }, 1500);
+}
+
+// Restart game
+function restartGame() {
+  currentIndex = {evaluate:0, simplify:0, laws:0};
+  loadQuestion('evaluate');
+  loadQuestion('simplify');
+  loadQuestion('laws');
+  alert("All questions have been reset! ✅");
+  switchTab('evaluate');
+}
+
+// Initialize
+loadQuestion('evaluate');
+loadQuestion('simplify');
+loadQuestion('laws');
+
+// Fireworks
+const canvas = document.getElementById('fireworkCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+function launchFireworks() {
+  for(let i=0;i<30;i++) createParticle(Math.random()*canvas.width, Math.random()*canvas.height/2);
+}
+
+function createParticle(x, y) {
+  const colors = ["#ff0044","#ff9900","#00ff99","#00ccff","#ff00ff"];
+  let particles = [];
+  for(let i=0;i<50;i++){
+    particles.push({x:x,y:y,dx:(Math.random()-0.5)*6,dy:(Math.random()-0.5)*6,color:colors[Math.floor(Math.random()*colors.length)],alpha:1});
+  }
+  animateParticles(particles);
+}
+
+function animateParticles(particles) {
+  let interval = setInterval(() => {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let done=true;
+    particles.forEach(p=>{
+      if(p.alpha>0){
+        done=false;
+        ctx.fillStyle=p.color;
+        ctx.globalAlpha=p.alpha;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,3,0,2*Math.PI);
+        ctx.fill();
+        p.x+=p.dx;
+        p.y+=p.dy;
+        p.alpha-=0.02;
+      }
+    });
+    if(done) clearInterval(interval);
+  },30);
+}
+</script>
+</body>
+</html>
